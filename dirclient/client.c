@@ -1,10 +1,32 @@
 
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 
-char		*ft_dec_to_bin(int nb);
+char		*ft_init_tab(void);
 void		ft_putstr(char *str);
-int		ft_atoi(char *str);
+int			ft_atoi(char *str);
+
+void		ft_send_to_server(char c, int pid, char *tab)
+{
+	char	i;
+
+	i = 7;
+	while (i)
+	{
+		usleep(2);
+		if (c >= tab[i])
+		{
+			kill(pid, SIGUSR2);
+			c = c - tab[i];
+		}
+		else
+		{
+			kill(pid, SIGUSR1);
+		}
+		i--;
+	}
+}
 
 void		ft_put_sig(int server, char bit)
 {
@@ -17,25 +39,19 @@ void		ft_put_sig(int server, char bit)
 void		ft_client(char **av)
 {
   int		server;
+  char		*tab;
   int		i;
-  int		j;
-  char		*letter;
 
   server = ft_atoi(av[1]);
   i = 0;
+  tab = ft_init_tab();
   while (av[2][i])
-    {
-      letter = ft_dec_to_bin((int)av[2][i]);
-      j = 0;
-      while (j < 8)
-	{
-	  ft_put_sig(server, letter[j]);
-	  usleep(25);
-	  j++;
-	}
-      i++;
-    }
-  free(letter);
+  {
+	  ft_send_to_server(av[2][i], server, tab);
+	  i++;
+  }
+  ft_send_to_server('\0', server, tab);  
+  free(tab);
 }
 
 int		main(int ac, char **av)
